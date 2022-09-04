@@ -13,25 +13,25 @@ namespace ProjectDemo
         public void Listen(Action<string> loginAction)
         {
             
-                // Socket oluşturuyoruz ve sunucuyu başlatıyoruz.
+                //We create a socket and start the server.
                 IPEndPoint serverEndPoint = new System.Net.IPEndPoint(IPAddress.Loopback, ServerPortNum);
                 Socket welcomingSocket = new Socket(SocketType.Stream, ProtocolType.Tcp);
                 welcomingSocket.Bind(serverEndPoint);
 
-                // Clientin bağlanmasını bekliyoruz
+                //Waiting for the client to connect.
                 welcomingSocket.Listen(1);
                 Socket connectionSocket = welcomingSocket.Accept();
 
-                // Clientten gelen mesajı çekiyoruz
+                //We get the message from the client
                 byte[] buffer = new byte[1024];
                 int numberOfBytesReceived = connectionSocket.Receive(buffer);
                 byte[] receivedBytes = new byte[numberOfBytesReceived];
                 Array.Copy(buffer, receivedBytes, numberOfBytesReceived);
                 string receivedMessage = Encoding.Default.GetString(receivedBytes);
                 //Console.WriteLine("Getting user " + receivedMessage);
-                // Clientten gelen mesaj receivedMessage değişkeninde saklanıyor.
+                //The message from the client is stored in the variable receivedMessage.
 
-                // Python kısmına geri dönüş yapıyoruz
+                //Back to the Python part
                 connectionSocket.Send(receivedBytes);
 
                 loginAction.Invoke(receivedMessage);
