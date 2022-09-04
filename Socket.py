@@ -1,4 +1,4 @@
-#c sharp ve python kodlarını birleştirmek için kullanılan kod
+#Code used to combine c sharp and python codes
 import socket
 
 def SendData(value):
