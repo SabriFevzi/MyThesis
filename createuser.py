@@ -1,4 +1,4 @@
-#Kişinin yüz verilerinin alınıp sisteme kaydedildiği kısım
+#The part where the face data of the person is taken and recorded in the system
 import cv2
 # Camera Settings
 cameraWidth = 1020
