@@ -1,0 +1,106 @@
+#The part where the person is identified
+import cv2
+import numpy as np
+import os
+from Socket import SendData
+
+# Folders
+faceDataFolder = "Datas/FaceDatas"
+learningDataFolder = "trainer"
+classifierFolder = 'haarcascade_frontalface_default.xml'
+
+# Camera Settings
+cameraWidth = 1020
+cameraHeight = 720
+
+# Create Camera
+#camera = cv2.VideoCapture(1)
+camera = cv2.VideoCapture(0,cv2.CAP_DSHOW).release()
+camera=cv2.VideoCapture(0,cv2.CAP_DSHOW)
+
+# Camera Settings
+camera.set(3, cameraWidth)
+camera.set(4, cameraHeight)
+
+# Define min window size to be recognized as a face
+minW = 0.001 * camera.get(3)
+minH = 0.001 * camera.get(4)
+
+# Create Recognizer
+recognizer = cv2.face.LBPHFaceRecognizer_create()
+recognizer.read("trainer/trainer.yml")
+
+# Create Cascade
+faceCascade = cv2.CascadeClassifier(classifierFolder);
+
+# Create Font
+font = cv2.FONT_HERSHEY_SIMPLEX
+
+## Names in database
+users = {
+    "1" :"Sabri Fevzi DINC" , "2" : "Ebru ZORLU", "3" : "Enes KURT", "4" : "Onur YALCINKAYA","5":"Muhammed GUNES"
+}
+
+# region Face Scan Function
+
+def FaceCapture():
+    foundedUser = "None"
+    oldFoundedUser = "None"
+    while True:
+        ret, img = camera.read()
+        img = cv2.flip(img, 1)  # Flip vertically
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        capturedFace = faceCascade.detectMultiScale(
+            gray,
+            scaleFactor=1.5,
+            minNeighbors=8,
+            minSize=(int(minW), int(minH)),
+        )
+
+        for (x, y, w, h) in capturedFace:
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            foundedUser, confidence = recognizer.predict(gray[y:y + h, x:x + w])
+            if confidence < 100:
+                name = users[f"{foundedUser}"]
+                if foundedUser != oldFoundedUser:
+                    try:
+                        a = SendData(foundedUser)
+                        if a != "":
+                            oldFoundedUser = foundedUser
+                    except:
+                        print("Connection error!")
+                confidence = "  {0}%".format(round(100 - confidence))
+            else:
+                name = "User Not Found!"
+                confidence = "  {0}%".format(round(100 - confidence))
+            cv2.putText(
+                img,
+                str(name),
+                (x + 5, y - 5),
+                font,
+                1,
+                (255, 255, 255),
+                2
+            )
+            cv2.putText(
+                img,
+                str(confidence),
+                (x + 5, y + h - 5),
+                font,
+                1,
+                (255, 255, 0),
+                1
+            )
+
+        cv2.imshow('camera', img)
+
+        k = cv2.waitKey(100) & 0xff  # Press 'ESC' for exiting video
+        if k == 27:
+            break
+# endregion
+FaceCapture()
+
+camera.release()
+# Clean and close camera window
+
+cv2.destroyAllWindows()
